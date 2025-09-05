@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Already Submitted</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2em;
+        }
+        .info-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        .content {
+            padding: 40px;
+            text-align: center;
+        }
+        .message {
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        .info {
+            background-color: #fff3cd;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 1px solid #ffeaa7;
+        }
+        .info h3 {
+            color: #856404;
+            margin-top: 0;
+        }
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            transition: background-color 0.3s;
+            margin: 10px;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="info-icon">ℹ️</div>
+            <h1>Report Already Submitted</h1>
+        </div>
+        
+        <div class="content">
+            <div class="message">
+                You have already submitted a report for the {{ item_type }} <strong>"{{ item_name }}"</strong>.
+            </div>
+            
+            <div class="info">
+                <h3>Why can't I report again?</h3>
+                <p>To prevent spam and ensure fair moderation, users can only submit one report per {{ item_type }}. Our moderation team will review your existing report.</p>
+                <p>If you have additional information, please contact our support team directly.</p>
+            </div>
+            
+            <a href="{% url 'all_projects' %}" class="btn">Browse Projects</a>
+            <a href="{% url 'home' %}" class="btn btn-secondary">Go Home</a>
+        </div>
+    </div>
+</body>
+</html>

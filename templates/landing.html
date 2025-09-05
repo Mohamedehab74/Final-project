@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Welcome to CrowdFund{% endblock %}
+
+{% block content %}
+<div class="landing-container" style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+    <div class="landing-content" style="text-align: center; color: white; max-width: 600px; padding: 2rem;">
+        <h1 style="font-size: 3rem; margin-bottom: 1rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
+            Welcome to CrowdFund
+        </h1>
+        <p style="font-size: 1.2rem; margin-bottom: 2rem; opacity: 0.9;">
+            Join our community and start funding amazing projects or create your own!
+        </p>
+        
+        <div class="auth-buttons" style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="{% url 'login' %}" class="btn" style="background: #4CAF50; color: white; padding: 12px 30px; text-decoration: none; border-radius: 25px; font-weight: bold; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                Login
+            </a>
+            <a href="{% url 'register' %}" class="btn" style="background: transparent; color: white; padding: 12px 30px; text-decoration: none; border-radius: 25px; font-weight: bold; border: 2px solid white; transition: all 0.3s ease;">
+                Register
+            </a>
+        </div>
+        
+        <div class="features" style="margin-top: 3rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem;">
+            <div class="feature" style="background: rgba(255,255,255,0.1); padding: 1.5rem; border-radius: 10px; backdrop-filter: blur(10px);">
+                <h3 style="margin-bottom: 0.5rem;">Create Projects</h3>
+                <p style="opacity: 0.8; font-size: 0.9rem;">Start your own crowdfunding campaign and bring your ideas to life</p>
+            </div>
+            <div class="feature" style="background: rgba(255,255,255,0.1); padding: 1.5rem; border-radius: 10px; backdrop-filter: blur(10px);">
+                <h3 style="margin-bottom: 0.5rem;">Support Others</h3>
+                <p style="opacity: 0.8; font-size: 0.9rem;">Discover and support amazing projects from creators around the world</p>
+            </div>
+            <div class="feature" style="background: rgba(255,255,255,0.1); padding: 1.5rem; border-radius: 10px; backdrop-filter: blur(10px);">
+                <h3 style="margin-bottom: 0.5rem;">Track Progress</h3>
+                <p style="opacity: 0.8; font-size: 0.9rem;">Monitor your projects and donations with real-time updates</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+}
+
+.feature:hover {
+    transform: translateY(-5px);
+    transition: transform 0.3s ease;
+}
+</style>
+{% endblock %}

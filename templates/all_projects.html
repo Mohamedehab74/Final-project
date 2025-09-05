@@ -1,0 +1,377 @@
+{% extends 'base.html' %}
+
+{% block title %}All Projects - CrowdFund{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white text-center">
+                    <h2><i class="fas fa-search"></i> Discover Amazing Projects</h2>
+                    <p class="mb-0">Support innovative ideas and make a difference</p>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Search Form -->
+                    <div class="text-center mb-4">
+                        <form method="get" action="" class="w-100">
+                            <div class="d-flex gap-4">
+                                <input type="text" name="search" placeholder="Search by title, tag, description, category, or creator name" value="{{ search_query }}" class="form-control">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search"></i> Search
+                                </button>
+                                {% if selected_category %}
+                                    <input type="hidden" name="category" value="{{ selected_category.id }}">
+                                {% endif %}
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Search Results Info -->
+                    {% if search_query %}
+                        <div class="alert alert-info mb-4">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-search"></i>
+                                    <strong>Search Results:</strong> Found {{ search_results_count }} project{{ search_results_count|pluralize }} for "<strong>{{ search_query }}</strong>"
+                                </div>
+                                <a href="{% url 'all_projects' %}{% if selected_category %}?category={{ selected_category.id }}{% endif %}" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-times"></i> Clear Search
+                                </a>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <!-- Navigation -->
+                    <div class="text-center mb-4">
+                        <a href="{% url 'all_projects' %}" class="btn btn-outline-primary me-2">
+                            <i class="fas fa-globe"></i> All Projects
+                        </a>
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'my_projects' %}" class="btn btn-outline-secondary me-2">
+                                <i class="fas fa-user"></i> My Projects
+                            </a>
+                            <a href="{% url 'create_project' %}" class="btn btn-success">
+                                <i class="fas fa-plus"></i> Create New Project
+                            </a>
+                        {% endif %}
+                    </div>
+
+                    <!-- Category Filters -->
+                    <div class="text-center mb-4">
+                        <h5 class="text-muted mb-3">
+                            <i class="fas fa-filter"></i> Filter by Category
+                        </h5>
+                        <div class="category-filters">
+                            <a href="{% url 'all_projects' %}" class="badge {% if not selected_category %}bg-primary{% else %}bg-secondary{% endif %} me-2 mb-2">
+                                <i class="fas fa-th-large"></i> All Categories
+                            </a>
+                            {% for category in categories %}
+                                <a href="{% url 'all_projects' %}?category={{ category.id }}" 
+                                   class="badge {% if selected_category.id == category.id %}bg-primary{% else %}bg-secondary{% endif %} me-2 mb-2">
+                                    <i class="fas fa-tag"></i> {{ category.name }}
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Selected Category Info -->
+                    {% if selected_category %}
+                        <div class="text-center mb-4">
+                            <div class="alert alert-info">
+                                <h5><i class="fas fa-tag"></i> Showing projects in: <strong>{{ selected_category.name }}</strong></h5>
+                                <p class="mb-0">Found {{ projects.count }} project{{ projects.count|pluralize }}</p>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    {% if projects %}
+                        <div class="row">
+                            {% for project in projects %}
+                                <div class="col-lg-4 col-md-6 mb-4">
+                                    <div class="project-card h-100">
+                                        {% with main_image=project.get_main_image %}
+                                            {% if main_image %}
+                                                <img src="{{ main_image.url }}" alt="{{ project.title }}" class="project-image">
+                                            {% else %}
+                                                <div class="project-image-placeholder">
+                                                    <i class="fas fa-image fa-3x text-muted"></i>
+                                                    <p class="text-muted mt-2">{{ project.title|slice:":20" }}...</p>
+                                                </div>
+                                            {% endif %}
+                                        {% endwith %}
+                                        
+                                        <div class="project-content p-3">
+                                            <a href="{% url 'project_detail' project.id %}" class="project-title">
+                                                <h5 class="mb-1">{{ project.title }}</h5>
+                                            </a>
+                                            <div class="project-owner text-muted mb-2">
+                                                <i class="fas fa-user"></i> by {{ project.owner.first_name }} {{ project.owner.last_name }}
+                                            </div>
+                                            
+                                            <div class="project-description mb-3">
+                                                {{ project.details|truncatewords:15 }}
+                                            </div>
+                                            
+                                            <!-- Rating Display -->
+                                            <div class="text-center mb-3">
+                                                {% with project.get_average_rating as avg_rating %}
+                                                {% with project.get_rating_count as rating_count %}
+                                                    {% if avg_rating > 0 %}
+                                                        <div class="rating">
+                                                            {% for i in "12345" %}
+                                                                {% if forloop.counter <= avg_rating %}
+                                                                    <i class="fas fa-star text-warning"></i>
+                                                                {% else %}
+                                                                    <i class="far fa-star text-muted"></i>
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                        </div>
+                                                        <div class="text-muted small">
+                                                            {{ avg_rating|floatformat:1 }} ({{ rating_count }})
+                                                        </div>
+                                                    {% else %}
+                                                        <div class="text-muted small">
+                                                            <i class="far fa-star"></i> No ratings yet
+                                                        </div>
+                                                    {% endif %}
+                                                {% endwith %}
+                                                {% endwith %}
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <span class="badge bg-info">{{ project.category.name|default:"General" }}</span>
+                                                <span class="text-muted small float-end">{{ project.start_time|date:"M j, Y" }}</span>
+                                            </div>
+                                            
+                                            <!-- Tags -->
+                                            {% if project.tags %}
+                                            <div class="mb-3">
+                                                <div class="project-tags">
+                                                    {% for tag in project.tags.split %}
+                                                        <span class="badge bg-light text-dark me-1 mb-1">{{ tag.strip }}</span>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                            
+                                            <div class="mb-3">
+                                                {% with project.get_donation_percentage as donation_percentage %}
+                                                {% if donation_percentage > 0 %}
+                                                    <div class="progress mb-2">
+                                                        <div class="progress-bar bg-success" style="width: {{ donation_percentage }}%"></div>
+                                                    </div>
+                                                    <div class="text-muted small">{{ donation_percentage|floatformat:1 }}% of ${{ project.total_target }} goal</div>
+                                                {% else %}
+                                                    <div class="progress mb-2">
+                                                        <div class="progress-bar bg-success" style="width: 0%"></div>
+                                                    </div>
+                                                    <div class="text-muted small">Just started - ${{ project.total_target }} goal</div>
+                                                {% endif %}
+                                                {% endwith %}
+                                            </div>
+                                            
+                                            {% if project.is_cancelled %}
+                                                <div class="alert alert-danger text-center mb-0">
+                                                    <i class="fas fa-times-circle"></i> <strong>Cancelled</strong>
+                                                </div>
+                                            {% else %}
+                                                <a href="{% url 'project_detail' project.id %}" class="btn btn-primary w-100">
+                                                    <i class="fas fa-eye"></i> View Project
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <!-- Empty State -->
+                        <div class="text-center py-5">
+                            {% if selected_category %}
+                                <div class="empty-state">
+                                    <i class="fas fa-folder-open fa-4x text-muted mb-4"></i>
+                                    <h3 class="text-muted mb-3">No projects found in {{ selected_category.name }}</h3>
+                                    <p class="text-muted mb-4">
+                                        There are currently no projects in the <strong>{{ selected_category.name }}</strong> category.
+                                        <br>Be the first to create an amazing project in this category!
+                                    </p>
+                                    <div class="d-flex justify-content-center gap-3">
+                                        <a href="{% url 'all_projects' %}" class="btn btn-outline-primary">
+                                            <i class="fas fa-arrow-left"></i> View All Projects
+                                        </a>
+                                        {% if user.is_authenticated %}
+                                            <a href="{% url 'create_project' %}" class="btn btn-success">
+                                                <i class="fas fa-plus"></i> Create Project
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="empty-state">
+                                    <i class="fas fa-rocket fa-4x text-muted mb-4"></i>
+                                    <h3 class="text-muted mb-3">No projects found</h3>
+                                    <p class="text-muted mb-4">
+                                        There are currently no projects available.
+                                        <br>Be the first to create an amazing project!
+                                    </p>
+                                    {% if user.is_authenticated %}
+                                        <a href="{% url 'create_project' %}" class="btn btn-success btn-lg">
+                                            <i class="fas fa-plus"></i> Create Your First Project
+                                        </a>
+                                    {% else %}
+                                        <a href="{% url 'login' %}" class="btn btn-primary btn-lg">
+                                            <i class="fas fa-sign-in-alt"></i> Login to Create Project
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .project-card {
+        border: 1px solid #e9ecef;
+        border-radius: 15px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        background: white;
+    }
+    
+    .project-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    .project-image {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+    }
+    
+    .project-image-placeholder {
+        width: 100%;
+        height: 200px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+    
+    .project-title {
+        text-decoration: none;
+        color: #333;
+        font-weight: 600;
+    }
+    
+    .project-title:hover {
+        color: #007bff;
+    }
+    
+    .project-owner {
+        font-size: 0.9em;
+    }
+    
+    .project-description {
+        color: #666;
+        font-size: 0.9em;
+        line-height: 1.5;
+    }
+    
+    .rating {
+        font-size: 1.1em;
+    }
+    
+    .category-filters {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+    }
+    
+    .badge {
+        padding: 8px 16px;
+        font-size: 0.9em;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    
+    .badge:hover {
+        transform: translateY(-2px);
+        text-decoration: none;
+    }
+    
+    .empty-state {
+        padding: 40px 20px;
+    }
+    
+    .card {
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+    }
+    
+    .card-header {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        border: none;
+        padding: 30px 20px;
+    }
+    
+    .btn {
+        border-radius: 8px;
+        padding: 10px 20px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn:hover {
+        transform: translateY(-2px);
+    }
+    
+    .progress {
+        height: 8px;
+        border-radius: 4px;
+    }
+    
+    .progress-bar {
+        border-radius: 4px;
+    }
+    
+    .project-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+    }
+    
+    .project-tags .badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .category-filters {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .badge {
+            width: 100%;
+            max-width: 200px;
+            text-align: center;
+        }
+        
+        .empty-state {
+            padding: 20px 10px;
+        }
+    }
+</style>
+{% endblock %}

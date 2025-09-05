@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Cancelled - {{ project.title }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2em;
+        }
+        .status-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        .project-info {
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #eee;
+        }
+        .project-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .status {
+            background-color: #e2e3e5;
+            border: 1px solid #d6d8db;
+            color: #383d41;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        .status h3 {
+            margin-top: 0;
+            color: #383d41;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+        .info h3 {
+            margin-top: 0;
+            color: #0c5460;
+        }
+        .info ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .info li {
+            margin: 5px 0;
+        }
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            transition: background-color 0.3s;
+            text-align: center;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="status-icon">📋</div>
+            <h1>Project Cancelled</h1>
+        </div>
+        
+        <div class="project-info">
+            <div class="project-title">{{ project.title }}</div>
+            <div style="color: #666; font-size: 0.9em;">by {{ project.owner.first_name }} {{ project.owner.last_name }}</div>
+        </div>
+        
+        <div class="content">
+            <div class="status">
+                <h3>✅ Project Successfully Cancelled</h3>
+                <p>Your project has been cancelled and is no longer accepting donations.</p>
+            </div>
+            
+            <div class="info">
+                <h3>What happens next?</h3>
+                <ul>
+                    <li><strong>Donor Refunds:</strong> All donations will be automatically refunded to donors</li>
+                    <li><strong>Project Status:</strong> The project is now marked as "Cancelled"</li>
+                    <li><strong>Donor Notifications:</strong> All donors will be notified of the cancellation</li>
+                    <li><strong>No Further Donations:</strong> The project will no longer accept new donations</li>
+                    <li><strong>Comments Disabled:</strong> Users can no longer add comments to this project</li>
+                </ul>
+            </div>
+            
+            <a href="{% url 'my_projects' %}" class="btn">View My Projects</a>
+            <a href="{% url 'all_projects' %}" class="btn btn-secondary">Browse Other Projects</a>
+        </div>
+    </div>
+</body>
+</html>

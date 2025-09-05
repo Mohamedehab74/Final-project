@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}Account Activated{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white text-center">
+                    <h3><i class="fas fa-check-circle"></i> Account Activated Successfully!</h3>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-user-check fa-3x text-success"></i>
+                    </div>
+                    <h4>Welcome, {{ user.first_name }}!</h4>
+                    <p class="lead">Your account has been successfully activated. You can now log in and start using our platform.</p>
+                    
+                    <div class="mt-4">
+                        <a href="{% url 'login' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-sign-in-alt"></i> Log In Now
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

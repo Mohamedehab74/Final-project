@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donate to {{ project.title }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2em;
+        }
+        .project-info {
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #eee;
+        }
+        .project-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .project-owner {
+            color: #666;
+            font-size: 0.9em;
+        }
+        .donation-form {
+            padding: 30px;
+        }
+        .amount-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .amount-option {
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .amount-option:hover {
+            border-color: #28a745;
+            background-color: #f8fff9;
+        }
+        .amount-option.selected {
+            border-color: #28a745;
+            background-color: #e8f5e8;
+        }
+        .amount-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #28a745;
+        }
+        .amount-label {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        .custom-amount {
+            margin-bottom: 30px;
+        }
+        .custom-amount label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #333;
+        }
+        .custom-amount input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1.1em;
+            box-sizing: border-box;
+        }
+        .custom-amount input:focus {
+            outline: none;
+            border-color: #28a745;
+        }
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+        .btn:hover {
+            background-color: #1e7e34;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            margin-top: 15px;
+        }
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        .progress-info {
+            background-color: #e8f5e8;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background-color: #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            transition: width 0.3s ease;
+        }
+        
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+        .stat {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #28a745;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Make a Donation</h1>
+        </div>
+        
+        <div class="project-info">
+            <div class="project-title">{{ project.title }}</div>
+            <div class="project-owner">by {{ project.owner.first_name }} {{ project.owner.last_name }}</div>
+        </div>
+        
+        <div class="donation-form">
+            <div class="progress-info">
+                <h3>Current Progress</h3>
+                {% if donation_count > 0 %}
+                    <div class="progress-bar">
+                        <div class="progress-fill" data-width="{{ progress_percentage|floatformat:1 }}"></div>
+                    </div>
+                    <div class="stats">
+                        <div class="stat">
+                            <div class="stat-value">${{ project.total_target|floatformat:2 }}</div>
+                            <div class="stat-label">Goal</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">${{ total_donations|floatformat:2 }}</div>
+                            <div class="stat-label">Raised</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">{{ progress_percentage|floatformat:1 }}%</div>
+                            <div class="stat-label">Progress</div>
+                        </div>
+                    </div>
+                {% else %}
+                    <p>Be the first to support this project!</p>
+                    <div class="stats">
+                        <div class="stat">
+                            <div class="stat-value">${{ project.total_target|floatformat:2 }}</div>
+                            <div class="stat-label">Goal</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">$0</div>
+                            <div class="stat-label">Raised</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">0%</div>
+                            <div class="stat-label">Progress</div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <form method="post">
+                {% csrf_token %}
+                
+                <h3>Choose Your Donation Amount</h3>
+                <div class="amount-options">
+                    <div class="amount-option" onclick="selectAmount(10)">
+                        <div class="amount-value">$10</div>
+                        <div class="amount-label">Small Support</div>
+                    </div>
+                    <div class="amount-option" onclick="selectAmount(25)">
+                        <div class="amount-value">$25</div>
+                        <div class="amount-label">Medium Support</div>
+                    </div>
+                    <div class="amount-option" onclick="selectAmount(50)">
+                        <div class="amount-value">$50</div>
+                        <div class="amount-label">Large Support</div>
+                    </div>
+                    <div class="amount-option" onclick="selectAmount(100)">
+                        <div class="amount-value">$100</div>
+                        <div class="amount-label">Major Support</div>
+                    </div>
+                    <div class="amount-option" onclick="selectAmount(250)">
+                        <div class="amount-value">$250</div>
+                        <div class="amount-label">Premium Support</div>
+                    </div>
+                    <div class="amount-option" onclick="selectAmount(500)">
+                        <div class="amount-value">$500</div>
+                        <div class="amount-label">VIP Support</div>
+                    </div>
+                </div>
+                
+                <div class="custom-amount">
+                    <label for="custom-amount">Or enter a custom amount:</label>
+                    <input type="number" id="custom-amount" name="amount" min="1" step="0.01" placeholder="Enter amount..." required>
+                </div>
+                
+                <button type="submit" class="btn">Complete Donation</button>
+                <a href="{% url 'project_detail' project.id %}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        function selectAmount(amount) {
+            // Remove selected class from all options
+            document.querySelectorAll('.amount-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            // Add selected class to clicked option
+            event.target.closest('.amount-option').classList.add('selected');
+            
+            // Set the custom amount input
+            document.getElementById('custom-amount').value = amount;
+        }
+        
+        // Handle custom amount input
+        document.getElementById('custom-amount').addEventListener('input', function() {
+            // Remove selected class from all options when user types custom amount
+            document.querySelectorAll('.amount-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+        });
+        
+        // Set progress bar width from data attribute
+        document.addEventListener('DOMContentLoaded', function() {
+            const progressFill = document.querySelector('.progress-fill[data-width]');
+            if (progressFill) {
+                const width = progressFill.getAttribute('data-width');
+                progressFill.style.width = width + '%';
+            }
+        });
+    </script>
+</body>
+</html>

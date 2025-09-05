@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Cancel Project - {{ project.title }}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+    <div class="card-header">
+        <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
+        <h1>Cancel Project</h1>
+        <p>This action cannot be undone</p>
+    </div>
+    <div class="card-content">
+        <div class="p-3 mb-3" style="background-color: #f8f9fa; border-radius: 8px;">
+            <div class="project-title" style="font-size: 1.3em; font-weight: bold; color: #333; margin-bottom: 10px;">{{ project.title }}</div>
+            <div style="color: #666; font-size: 0.9em;">by {{ project.owner.first_name }} {{ project.owner.last_name }}</div>
+            
+            <div class="grid grid-3 mt-3" style="padding: 15px; background-color: #fff3cd; border-radius: 8px; border: 1px solid #ffeaa7;">
+                <div style="text-align: center;">
+                    <div style="font-size: 1.2em; font-weight: bold; color: #856404;">{{ donation_percentage|floatformat:1 }}%</div>
+                    <div style="color: #856404; font-size: 0.9em;">Raised</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 1.2em; font-weight: bold; color: #856404;">25%</div>
+                    <div style="color: #856404; font-size: 0.9em;">Threshold</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 1.2em; font-weight: bold; color: #856404;">{{ project.donation_set.count }}</div>
+                    <div style="color: #856404; font-size: 0.9em;">Donors</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="alert alert-danger">
+            <h3>⚠️ Important Warning</h3>
+            <p><strong>You are about to cancel this project permanently.</strong></p>
+            <ul style="margin: 10px 0; padding-left: 20px;">
+                <li>This action cannot be undone</li>
+                <li>All donations will be refunded to donors</li>
+                <li>The project will be marked as cancelled</li>
+                <li>Donors will be notified of the cancellation</li>
+                <li>You will not be able to reactivate this project</li>
+            </ul>
+        </div>
+        
+        <div class="alert alert-info">
+            <h3>Why can you cancel this project?</h3>
+            <p>Your project has raised <strong>{{ donation_percentage|floatformat:1 }}%</strong> of the target amount, which is below the 25% threshold required to continue. This policy helps ensure that projects have sufficient community support before proceeding.</p>
+        </div>
+        
+        <form method="post" class="mb-3">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger" style="width: 100%;">Yes, Cancel This Project</button>
+        </form>
+        <a href="{% url 'project_detail' project.id %}" class="btn btn-secondary" style="width: 100%;">No, Keep My Project</a>
+    </div>
+</div>
+{% endblock %}

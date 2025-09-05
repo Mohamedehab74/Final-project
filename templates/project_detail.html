@@ -1,0 +1,576 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ project.title }} - CrowdFund{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h1>{{ project.title }}</h1>
+        <p>by {{ project.owner.first_name }} {{ project.owner.last_name }}</p>
+    </div>
+    
+    <!-- Project Images Gallery -->
+    {% if project_images or project.image %}
+    <div class="project-gallery">
+        {% if project_images %}
+            <!-- Multiple images from ProjectImage model -->
+            <div class="gallery-container">
+                {% for project_image in project_images %}
+                <div class="gallery-item {% if project_image.is_primary %}primary{% endif %}">
+                    <img src="{{ project_image.image.url }}" alt="{{ project_image.caption|default:project.title }}" class="project-image">
+                    {% if project_image.caption %}
+                        <div class="image-caption">{{ project_image.caption }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        {% elif project.image %}
+            <!-- Fallback to old single image field -->
+            <div class="gallery-container">
+                <div class="gallery-item primary">
+                    <img src="{{ project.image.url }}" alt="{{ project.title }}" class="project-image">
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    <div class="card-content">
+        <div class="grid grid-2">
+            <div>
+                <h3 class="mb-2">Project Information</h3>
+                <div class="p-3" style="background-color: #f8f9fa; border-radius: 8px;">
+                    <p class="mb-1"><strong>Category:</strong> {{ project.category.name|default:"No category" }}</p>
+                    <p class="mb-1"><strong>Start Date:</strong> {{ project.start_time|date:"F j, Y" }}</p>
+                    <p class="mb-1"><strong>End Date:</strong> {{ project.end_time|date:"F j, Y" }}</p>
+                    <p class="mb-2"><strong>Target Amount:</strong> ${{ project.total_target }}</p>
+                    
+                    <!-- Rating Display -->
+                    <div class="mb-2">
+                        <p class="mb-1"><strong>Rating:</strong></p>
+                        {% if average_rating > 0 %}
+                            <div class="rating mb-1">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= average_rating %}
+                                        ★
+                                    {% else %}
+                                        ☆
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <p style="color: #666; font-size: 0.9em;">
+                                {{ average_rating|floatformat:1 }} ({{ rating_count }} rating{{ rating_count|pluralize }})
+                            </p>
+                        {% else %}
+                            <p style="color: #999;">No ratings yet</p>
+                        {% endif %}
+                        {% if user_rating %}
+                            <p style="color: #28a745; font-size: 0.9em;">You rated this project {{ user_rating }} stars</p>
+                        {% endif %}
+                    </div>
+                    
+                    {% if project.tags %}
+                    <div class="mb-2">
+                        <strong>Tags:</strong><br>
+                        {% for tag in project.tags.split|slice:":5" %}
+                            <span class="badge badge-info">{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div>
+                <h3 class="mb-2">Funding Progress</h3>
+                <div class="p-3" style="background-color: #e8f5e8; border-radius: 8px; text-align: center;">
+                    <div class="progress">
+                        <div class="progress-bar" style="width: {{ progress_percentage }}%"></div>
+                    </div>
+                    <p class="mb-2">{{ progress_percentage|floatformat:1 }}% of goal reached</p>
+                    
+                    <div class="grid grid-3">
+                        <div>
+                            <div style="font-size: 1.5em; font-weight: bold; color: #28a745;">${{ total_donations|floatformat:2 }}</div>
+                            <div style="color: #666; font-size: 0.9em;">Raised</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 1.5em; font-weight: bold; color: #28a745;">${{ project.total_target|floatformat:2 }}</div>
+                            <div style="color: #666; font-size: 0.9em;">Goal</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 1.5em; font-weight: bold; color: #28a745;">{{ donation_count }}</div>
+                            <div style="color: #666; font-size: 0.9em;">Donors</div>
+                        </div>
+                    </div>
+                    
+                    {% if project.is_cancelled %}
+                        <div class="alert alert-danger mt-2">
+                            <strong>⚠️ This project has been cancelled</strong><br>
+                            <small>No longer accepting donations</small>
+                        </div>
+                    {% else %}
+                        <a href="{% url 'donate' project.id %}" class="btn btn-success mt-2">Donate Now</a>
+                    {% endif %}
+                    
+                    <div class="mt-2">
+                        <a href="{% url 'rate_project' project.id %}" class="btn btn-warning">Rate Project</a>
+                        <a href="{% url 'report_project' project.id %}" class="btn btn-danger">Report Project</a>
+                        
+                        {% if user == project.owner and project.can_be_cancelled %}
+                            <a href="{% url 'cancel_project' project.id %}" class="btn btn-secondary">Cancel Project</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-4">
+            <h3 class="mb-2">Project Details</h3>
+            <div class="p-3" style="background-color: #f8f9fa; border-radius: 8px;">
+                {{ project.details|linebreaks }}
+            </div>
+        </div>
+        
+        <div class="mt-4">
+            <h3 class="mb-2">Comments ({{ comments.count }})</h3>
+            
+            <!-- Comment Form -->
+            {% if project.is_cancelled %}
+                <div class="alert alert-danger">
+                    <h4>Comments Disabled</h4>
+                    <p>This project has been cancelled. Comments are no longer allowed.</p>
+                </div>
+            {% else %}
+                <div class="p-3 mb-3" style="background-color: #f8f9fa; border-radius: 8px;">
+                    <h4 class="mb-2">Add a Comment</h4>
+                    <form method="post" action="{% url 'add_comment' project.id %}">
+                        {% csrf_token %}
+                        <textarea name="content" placeholder="Share your thoughts about this project..." 
+                                  class="form-control" required></textarea>
+                        <button type="submit" class="btn mt-2">Post Comment</button>
+                    </form>
+                </div>
+            {% endif %}
+            
+            <!-- Comments List -->
+            {% if comments %}
+                {% for comment in comments %}
+                <div class="comment-container">
+                    <div class="p-3 mb-2" style="background-color: #f8f9fa; border-radius: 8px; border-left: 4px solid #667eea;">
+                        <div class="mb-1">
+                            <span style="font-weight: bold; color: #667eea;">
+                                {% if comment.user.first_name and comment.user.last_name %}
+                                    {{ comment.user.first_name }} {{ comment.user.last_name }}
+                                {% elif comment.user.first_name %}
+                                    {{ comment.user.first_name }}
+                                {% elif comment.user.last_name %}
+                                    {{ comment.user.last_name }}
+                                {% else %}
+                                    {{ comment.user.username }}
+                                {% endif %}
+                            </span>
+                            <span style="color: #666; font-size: 0.9em; float: right;">{{ comment.timestamp|date:"F j, Y g:i A" }}</span>
+                            <a href="{% url 'report_comment' comment.id %}" style="color: #dc3545; text-decoration: none; font-size: 0.9em; margin-left: 10px;">Report</a>
+                        </div>
+                        <p>{{ comment.content }}</p>
+                        
+                        <!-- Reply button and count -->
+                        <div class="mt-2">
+                            <button class="btn btn-sm btn-outline-primary reply-btn" data-comment-id="{{ comment.id }}">
+                                <i class="fas fa-reply"></i> Reply 
+                                {% if comment.get_reply_count > 0 %}
+                                    ({{ comment.get_reply_count }})
+                                {% endif %}
+                            </button>
+                        </div>
+                        
+                        <!-- Reply form (hidden by default) -->
+                        <div class="reply-form mt-2" id="reply-form-{{ comment.id }}" style="display: none;">
+                            <form method="post" action="{% url 'add_reply' comment.id %}">
+                                {% csrf_token %}
+                                <textarea name="content" placeholder="Write a reply..." 
+                                          class="form-control" required style="height: 60px;"></textarea>
+                                <div class="mt-2">
+                                    <button type="submit" class="btn btn-sm btn-primary">Post Reply</button>
+                                    <button type="button" class="btn btn-sm btn-secondary cancel-reply" data-comment-id="{{ comment.id }}">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Replies -->
+                    {% if comment.get_replies %}
+                        <div class="replies-container" style="margin-left: 30px;">
+                            {% for reply in comment.get_replies %}
+                            <div class="p-2 mb-1" style="background-color: #f0f2f5; border-radius: 6px; border-left: 3px solid #28a745;">
+                                <div class="mb-1">
+                                    <span style="font-weight: bold; color: #28a745;">
+                                        {% if reply.user.first_name and reply.user.last_name %}
+                                            {{ reply.user.first_name }} {{ reply.user.last_name }}
+                                        {% elif reply.user.first_name %}
+                                            {{ reply.user.first_name }}
+                                        {% elif reply.user.last_name %}
+                                            {{ reply.user.last_name }}
+                                        {% else %}
+                                            {{ reply.user.username }}
+                                        {% endif %}
+                                    </span>
+                                    <span style="color: #666; font-size: 0.8em; float: right;">{{ reply.timestamp|date:"F j, Y g:i A" }}</span>
+                                    <a href="{% url 'report_comment' reply.id %}" style="color: #dc3545; text-decoration: none; font-size: 0.8em; margin-left: 10px;">Report</a>
+                                </div>
+                                <p style="margin: 0; font-size: 0.95em;">{{ reply.content }}</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center p-3" style="background-color: #f8f9fa; border-radius: 8px;">
+                    <p>No comments yet. Be the first to comment!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Similar Projects Section -->
+{% if similar_projects %}
+<div class="card mt-4">
+    <div class="card-header">
+        <h3>Similar Projects You Might Like</h3>
+    </div>
+    <div class="card-content">
+        <div class="grid-4">
+            {% for similar_project in similar_projects %}
+            <div class="project-card">
+                <div class="project-image-container">
+                    {% if similar_project.get_main_image %}
+                        <img src="{{ similar_project.get_main_image.url }}" alt="{{ similar_project.title }}" class="project-thumbnail">
+                    {% else %}
+                        <div class="no-image-placeholder">
+                            <i class="fas fa-image"></i>
+                        </div>
+                    {% endif %}
+                    <div class="project-overlay">
+                        <a href="{% url 'project_detail' similar_project.id %}" class="btn btn-sm btn-primary">View Project</a>
+                    </div>
+                </div>
+                <div class="project-content">
+                    <h4 class="project-title">
+                        <a href="{% url 'project_detail' similar_project.id %}">{{ similar_project.title }}</a>
+                    </h4>
+                    <p class="project-owner">by {{ similar_project.owner.first_name }} {{ similar_project.owner.last_name }}</p>
+                    <p class="project-description">{{ similar_project.details|truncatewords:15 }}</p>
+                    
+                    <!-- Progress Bar -->
+                    <div class="progress-container">
+                        <div class="progress">
+                            <div class="progress-bar" style="width: {{ similar_project.get_donation_percentage }}%"></div>
+                        </div>
+                        <div class="progress-stats">
+                            <span class="percentage">{{ similar_project.get_donation_percentage|floatformat:1 }}%</span>
+                            <span class="amount">${{ similar_project.total_target|floatformat:0 }} goal</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Tags -->
+                    {% if similar_project.tags %}
+                    <div class="project-tags">
+                        {% for tag in similar_project.tags.split|slice:":3" %}
+                            <span class="badge badge-info">{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .project-gallery {
+        margin-bottom: 2rem;
+    }
+    
+    .gallery-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .gallery-item {
+        position: relative;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .gallery-item.primary {
+        grid-column: 1 / -1;
+    }
+    
+    .project-image {
+        width: 100%;
+        height: 300px;
+        object-fit: cover;
+        display: block;
+    }
+    
+    .gallery-item.primary .project-image {
+        height: 400px;
+    }
+    
+    .image-caption {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(0,0,0,0.7);
+        color: white;
+        padding: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .comment-container {
+        margin-bottom: 1rem;
+    }
+    
+    .replies-container {
+        border-left: 2px solid #e9ecef;
+        padding-left: 1rem;
+    }
+    
+    .reply-btn {
+        font-size: 0.85em;
+        padding: 0.25rem 0.5rem;
+    }
+    
+    .reply-form {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        padding: 1rem;
+    }
+    
+    /* Similar Projects Styles */
+    .grid-4 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .project-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: 1px solid #e9ecef;
+    }
+    
+    .project-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .project-image-container {
+        position: relative;
+        height: 200px;
+        overflow: hidden;
+    }
+    
+    .project-thumbnail {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+    
+    .project-card:hover .project-thumbnail {
+        transform: scale(1.05);
+    }
+    
+    .no-image-placeholder {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6c757d;
+        font-size: 2rem;
+    }
+    
+    .project-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .project-card:hover .project-overlay {
+        opacity: 1;
+    }
+    
+    .project-content {
+        padding: 1.5rem;
+    }
+    
+    .project-title {
+        font-size: 1.1rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+    
+    .project-title a {
+        color: #333;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+    
+    .project-title a:hover {
+        color: #667eea;
+    }
+    
+    .project-owner {
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .project-description {
+        color: #555;
+        font-size: 0.9rem;
+        line-height: 1.4;
+        margin-bottom: 1rem;
+    }
+    
+    .progress-container {
+        margin-bottom: 1rem;
+    }
+    
+    .progress {
+        height: 8px;
+        background-color: #e9ecef;
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: 0.5rem;
+    }
+    
+    .progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        border-radius: 4px;
+        transition: width 0.3s ease;
+    }
+    
+    .progress-stats {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.85rem;
+    }
+    
+    .percentage {
+        color: #667eea;
+        font-weight: 600;
+    }
+    
+    .amount {
+        color: #666;
+    }
+    
+    .project-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .badge {
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .badge-info {
+        background-color: #e3f2fd;
+        color: #1976d2;
+    }
+    
+    @media (max-width: 768px) {
+        .gallery-container {
+            grid-template-columns: 1fr;
+        }
+        
+        .project-image {
+            height: 250px;
+        }
+        
+        .gallery-item.primary .project-image {
+            height: 300px;
+        }
+        
+        .replies-container {
+            margin-left: 15px !important;
+        }
+        
+        .grid-4 {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .project-card {
+            margin-bottom: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle reply button clicks
+    document.querySelectorAll('.reply-btn').forEach(function(button) {
+        button.addEventListener('click', function() {
+            const commentId = this.getAttribute('data-comment-id');
+            const replyForm = document.getElementById('reply-form-' + commentId);
+            
+            // Hide all other reply forms first
+            document.querySelectorAll('.reply-form').forEach(function(form) {
+                form.style.display = 'none';
+            });
+            
+            // Toggle the clicked form
+            if (replyForm.style.display === 'none') {
+                replyForm.style.display = 'block';
+                replyForm.querySelector('textarea').focus();
+            } else {
+                replyForm.style.display = 'none';
+            }
+        });
+    });
+    
+    // Handle cancel reply button clicks
+    document.querySelectorAll('.cancel-reply').forEach(function(button) {
+        button.addEventListener('click', function() {
+            const commentId = this.getAttribute('data-comment-id');
+            const replyForm = document.getElementById('reply-form-' + commentId);
+            replyForm.style.display = 'none';
+        });
+    });
+});
+</script>
+{% endblock %}

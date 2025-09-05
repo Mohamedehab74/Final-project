@@ -1,0 +1,1111 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - RiseTogether{% endblock %}
+
+{% block content %}
+
+<!-- Welcome Section -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h1>Welcome back, {{ user.first_name }}! 👋</h1>
+        <p>Ready to make a difference? Explore projects or create your own</p>
+    </div>
+    <div class="card-content text-center">
+        <div class="grid grid-2">
+            <div class="p-3">
+                <h3 class="mb-2">Discover Projects</h3>
+                <p class="mb-3">Explore innovative projects from creators around the world and support the ones that inspire you.</p>
+                <a href="{% url 'all_projects' %}" class="btn btn-success">View All Projects</a>
+            </div>
+            <div class="p-3">
+                <h3 class="mb-2">My Projects</h3>
+                <p class="mb-3">Manage your own projects, track funding progress, and connect with your supporters.</p>
+                <a href="{% url 'my_projects' %}" class="btn">View My Projects</a>
+            </div>
+        </div>
+        
+        <div class="mt-4">
+            <h3 class="mb-2">Ready to Start?</h3>
+            <p class="mb-3">Create your own project and start raising funds for your amazing idea.</p>
+            <a href="{% url 'create_project' %}" class="btn btn-warning">Create New Project</a>
+        </div>
+    </div>
+</div>
+
+<!-- Top Rated Projects Slider -->
+{% if top_projects %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h2>🌟 Top Rated Projects</h2>
+        <p>Discover the most loved projects by our community</p>
+    </div>
+    <div class="card-content">
+        <div class="slider-container">
+            <div class="slider-wrapper">
+                <div class="slider-track" id="slider-track">
+                    <div class="slider-loading" id="slider-loading">
+                        <div class="loading-spinner"></div>
+                        <p>Loading projects...</p>
+                    </div>
+                    {% for project in top_projects %}
+                    <div class="slider-slide">
+                        <div class="project-slide-card">
+                            <div class="project-slide-image">
+                                {% if project.get_main_image %}
+                                    <img src="{{ project.get_main_image.url }}" alt="{{ project.title }}">
+                                {% else %}
+                                    <div class="no-image-placeholder">
+                                        <i class="fas fa-image"></i>
+                                    </div>
+                                {% endif %}
+                                <div class="project-overlay">
+                                    <a href="{% url 'project_detail' project.id %}" class="btn btn-primary">View Project</a>
+                                </div>
+                            </div>
+                            <div class="project-slide-content">
+                                <div class="project-rating">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= project.avg_rating %}
+                                            <span class="star filled">★</span>
+                                        {% else %}
+                                            <span class="star">☆</span>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <span class="rating-text">{{ project.avg_rating|floatformat:1 }}</span>
+                                </div>
+                                <h3 class="project-title">
+                                    <a href="{% url 'project_detail' project.id %}">{{ project.title }}</a>
+                                </h3>
+                                <p class="project-owner">by {{ project.owner.first_name }} {{ project.owner.last_name }}</p>
+                                
+                                <!-- Project Meta Info -->
+                                <div class="project-meta">
+                                    {% if project.category %}
+                                        <span class="project-category">{{ project.category.name }}</span>
+                                    {% endif %}
+                                    {% if project.tags %}
+                                        <div class="project-tags">
+                                            {% for tag in project.tags.split|slice:":3" %}
+                                                <span class="tag">{{ tag }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <p class="project-description">{{ project.details|truncatewords:20 }}</p>
+                                
+                                <!-- Progress Bar -->
+                                <div class="progress-container">
+                                    <div class="progress">
+                                        <div class="progress-bar" style="--progress-width: {{ project.get_donation_percentage }}%"></div>
+                                    </div>
+                                    <div class="progress-stats">
+                                        <span class="percentage">{{ project.get_donation_percentage|floatformat:1 }}%</span>
+                                        <span class="amount">${{ project.total_target|floatformat:0 }} goal</span>
+                                    </div>
+                                    <div class="funding-details">
+                                        <div class="funding-item">
+                                            <i class="fas fa-dollar-sign"></i>
+                                            <span>Raised: ${{ project.donation_set.all|length|default:0 }}</span>
+                                        </div>
+                                        <div class="funding-item">
+                                            <i class="fas fa-users"></i>
+                                            <span>{{ project.donation_set.all|length|default:0 }} donors</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Time Remaining -->
+                                <div class="time-remaining">
+                                    <i class="fas fa-clock"></i>
+                                    <span>
+                                        {% if project.end_time %}
+                                            {% if project.end_time|date:"Y-m-d" > "now"|date:"Y-m-d" %}
+                                                {{ project.end_time|timeuntil }} left
+                                            {% else %}
+                                                Campaign ended
+                                            {% endif %}
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                
+                                <div class="project-actions">
+                                    <a href="{% url 'project_detail' project.id %}" class="btn btn-outline-primary">Learn More</a>
+                                    <a href="{% url 'donate' project.id %}" class="btn btn-success">Donate Now</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Slider Navigation -->
+<button class="slider-nav prev" id="prev-btn" aria-label="Previous project" title="Previous project">
+    ← Previous
+</button>
+<button class="slider-nav next" id="next-btn" aria-label="Next project" title="Next project">
+    Next →
+</button>
+
+            
+            <!-- Slider Dots -->
+            <div class="slider-dots" id="slider-dots" role="tablist" aria-label="Project navigation">
+                {% for project in top_projects %}
+                <button class="dot {% if forloop.first %}active{% endif %}" 
+                        data-slide="{{ forloop.counter0 }}" 
+                        role="tab" 
+                        aria-label="Go to project {{ forloop.counter }}"
+                        aria-selected="{% if forloop.first %}true{% else %}false{% endif %}">
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Featured Projects Section -->
+{% if featured_projects %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h2>⭐ Featured Projects</h2>
+        <p>Handpicked projects by our team that deserve your attention</p>
+    </div>
+    <div class="card-content">
+        <div class="featured-projects-grid">
+            {% for project in featured_projects %}
+            <div class="featured-project-card">
+                <div class="featured-project-image">
+                    {% if project.get_main_image %}
+                        <img src="{{ project.get_main_image.url }}" alt="{{ project.title }}">
+                    {% else %}
+                        <div class="no-image-placeholder">
+                            <i class="fas fa-image"></i>
+                        </div>
+                    {% endif %}
+                    <div class="featured-project-overlay">
+                        <a href="{% url 'project_detail' project.id %}" class="btn btn-sm btn-primary">View Project</a>
+                    </div>
+                    <div class="featured-badge">
+                        <i class="fas fa-star"></i> Featured
+                    </div>
+                </div>
+                <div class="featured-project-content">
+                    <h3 class="featured-project-title">
+                        <a href="{% url 'project_detail' project.id %}">{{ project.title }}</a>
+                    </h3>
+                    <p class="featured-project-owner">by {{ project.owner.first_name }} {{ project.owner.last_name }}</p>
+                    <p class="featured-project-description">{{ project.details|truncatewords:15 }}</p>
+                    
+                    <!-- Progress Bar -->
+                    <div class="featured-progress-container">
+                        <div class="featured-progress">
+                            <div class="featured-progress-bar" style="--progress-width: {{ project.get_donation_percentage }}%"></div>
+                        </div>
+                        <div class="featured-progress-stats">
+                            <span class="featured-percentage">{{ project.get_donation_percentage|floatformat:1 }}%</span>
+                            <span class="featured-amount">${{ project.total_target|floatformat:0 }} goal</span>
+                        </div>
+                    </div>
+                    
+                    <div class="featured-project-actions">
+                        <a href="{% url 'project_detail' project.id %}" class="btn btn-sm btn-outline-primary">Learn More</a>
+                        <a href="{% url 'donate' project.id %}" class="btn btn-sm btn-success">Donate Now</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Latest Projects Section -->
+{% if latest_projects %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h2>🆕 Latest Projects</h2>
+        <p>Check out the newest projects that just launched</p>
+    </div>
+    <div class="card-content">
+        <div class="latest-projects-grid">
+            {% for project in latest_projects %}
+            <div class="latest-project-card">
+                <div class="latest-project-image">
+                    {% if project.get_main_image %}
+                        <img src="{{ project.get_main_image.url }}" alt="{{ project.title }}">
+                    {% else %}
+                        <div class="no-image-placeholder">
+                            <i class="fas fa-image"></i>
+                        </div>
+                    {% endif %}
+                    <div class="latest-project-overlay">
+                        <a href="{% url 'project_detail' project.id %}" class="btn btn-sm btn-primary">View Project</a>
+                    </div>
+                </div>
+                <div class="latest-project-content">
+                    <h3 class="latest-project-title">
+                        <a href="{% url 'project_detail' project.id %}">{{ project.title }}</a>
+                    </h3>
+                    <p class="latest-project-owner">by {{ project.owner.first_name }} {{ project.owner.last_name }}</p>
+                    <p class="latest-project-description">{{ project.details|truncatewords:15 }}</p>
+                    
+                    <!-- Progress Bar -->
+                    <div class="latest-progress-container">
+                        <div class="latest-progress">
+                            <div class="latest-progress-bar" style="--progress-width: {{ project.get_donation_percentage }}%"></div>
+                        </div>
+                        <div class="latest-progress-stats">
+                            <span class="latest-percentage">{{ project.get_donation_percentage|floatformat:1 }}%</span>
+                            <span class="latest-amount">${{ project.total_target|floatformat:0 }} goal</span>
+                        </div>
+                    </div>
+                    
+                    <div class="latest-project-actions">
+                        <a href="{% url 'project_detail' project.id %}" class="btn btn-sm btn-outline-primary">Learn More</a>
+                        <a href="{% url 'donate' project.id %}" class="btn btn-sm btn-success">Donate Now</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* CSS Reset for Images - Only for Latest and Featured Projects */
+    .latest-project-card img,
+    .featured-project-card img {
+        all: unset !important;
+        display: block !important;
+        width: 100% !important;
+        height: 200px !important;
+        max-width: 100% !important;
+        max-height: 200px !important;
+        object-fit: cover !important;
+        box-sizing: border-box !important;
+        aspect-ratio: 16/9 !important;
+    }
+    
+    /* Slider Styles */
+    .slider-container {
+        position: relative;
+        overflow: hidden;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 3rem;
+        margin: 2rem 0;
+    }
+    
+    .slider-wrapper {
+        position: relative;
+        overflow: hidden;
+        border-radius: 8px;
+    }
+    
+    .slider-track {
+        display: flex;
+        transition: transform 0.5s ease-in-out;
+        gap: 1rem;
+    }
+    
+    .slider-slide {
+        min-width: 120%;
+        flex-shrink: 0;
+    }
+    
+    .project-slide-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        display: flex;
+        height: 380px;
+        border: 1px solid #e9ecef;
+    }
+    
+    .project-slide-image {
+        flex: 0 0 50%;
+        position: relative;
+        overflow: hidden;
+        padding: 1rem;
+    }
+    
+    .project-slide-image img {
+        width: 100%;
+        height: 340px;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+        border-radius: 8px;
+        background-color: #f8f9fa;
+    }
+    
+    /* Override any conflicting styles - Only for Latest and Featured Projects */
+    .latest-project-card img,
+    .featured-project-card img {
+        width: 100% !important;
+        height: 200px !important;
+        max-width: 100% !important;
+        max-height: 200px !important;
+        object-fit: cover !important;
+        display: block !important;
+        box-sizing: border-box !important;
+        aspect-ratio: 16/9 !important;
+    }
+    
+    .project-slide-card:hover .project-slide-image img {
+        transform: scale(1.05);
+    }
+    
+    .no-image-placeholder {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6c757d;
+        font-size: 3rem;
+    }
+    
+    .project-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .project-slide-card:hover .project-overlay {
+        opacity: 1;
+    }
+    
+    .project-slide-content {
+        flex: 1;
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    
+    .project-rating {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .star {
+        color: #ddd;
+        font-size: 1.2rem;
+    }
+    
+    .star.filled {
+        color: #ffc107;
+    }
+    
+    .rating-text {
+        color: #666;
+        font-weight: 600;
+        margin-left: 0.5rem;
+    }
+    
+    .project-title {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-bottom: 0.75rem;
+    }
+    
+    .project-title a {
+        color: #333;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+    
+    .project-title a:hover {
+        color: #667eea;
+    }
+    
+    .project-owner {
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+    
+    .project-description {
+        color: #555;
+        line-height: 1.5;
+        margin-bottom: 1.5rem;
+        flex-grow: 1;
+    }
+    
+    .progress-container {
+        margin-bottom: 1.5rem;
+    }
+    
+    .progress {
+        height: 8px;
+        background-color: #e9ecef;
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: 0.5rem;
+    }
+    
+    .progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        border-radius: 4px;
+        transition: width 0.3s ease;
+        width: var(--progress-width, 0%);
+    }
+    
+    .progress-stats {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.85rem;
+    }
+    
+    .percentage {
+        color: #667eea;
+        font-weight: 600;
+    }
+    
+    .amount {
+        color: #666;
+    }
+    
+    .project-actions {
+        display: flex;
+        gap: 1rem;
+    }
+    
+    .project-actions .btn {
+        flex: 1;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
+    }
+    
+    /* Slider Navigation */
+    .slider-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 25px;
+        padding: 12px 20px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        z-index: 10;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        min-width: 100px;
+        text-align: center;
+    }
+    
+    .slider-nav:hover {
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        transform: translateY(-50%) scale(1.05);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+    
+    .slider-nav.prev {
+        left: 2rem;
+    }
+    
+    .slider-nav.next {
+        right: 2rem;
+    }
+    
+    /* Button hover effect */
+    .slider-nav:hover {
+        transform: translateY(-50%) scale(1.05);
+    }
+    
+    /* Slider Dots */
+    .slider-dots {
+        position: absolute;
+        bottom: 1rem;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 0.5rem;
+        z-index: 10;
+    }
+    
+    .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(255,255,255,0.5);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .dot.active {
+        background: white;
+        transform: scale(1.2);
+    }
+    
+    .dot:hover {
+        background: rgba(255,255,255,0.8);
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .slider-container {
+            padding: 1.5rem;
+        }
+        
+        .project-slide-card {
+            flex-direction: column;
+            height: auto;
+            min-height: 380px;
+        }
+        
+        .project-slide-image {
+            flex: none;
+            height: 300px;
+        }
+        
+        .project-slide-content {
+            padding: 1.5rem;
+        }
+        
+        .project-actions {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .slider-nav {
+            padding: 10px 16px;
+            font-size: 12px;
+            min-width: 80px;
+        }
+        
+        .slider-nav.prev {
+            left: 1rem;
+        }
+        
+        .slider-nav.next {
+            right: 1rem;
+        }
+    }
+    
+    /* Latest Projects Styles */
+    .latest-projects-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 2rem;
+    }
+    
+    .latest-project-card {
+        background: white;
+        border-radius: 12px;
+        overflow: visible;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: 1px solid #e9ecef;
+        height: auto;
+        min-height: 280px;
+        display: flex;
+    }
+    
+    .latest-project-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .latest-project-image {
+        flex: 0 0 45%;
+        width: 45%;
+        position: relative;
+        overflow: hidden;
+        display: block;
+        padding: 1rem;
+        min-height: 200px;
+    }
+    
+    .latest-project-image img {
+        width: 100% !important;
+        height: 200px !important;
+        max-width: 100% !important;
+        max-height: 200px !important;
+        object-fit: cover !important;
+        transition: transform 0.3s ease;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        display: block;
+        /* Ensure consistent sizing for all project images */
+        aspect-ratio: 16/9;
+    }
+    
+    .latest-project-card:hover .latest-project-image img {
+        transform: scale(1.05);
+    }
+    
+    .latest-project-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .latest-project-card:hover .latest-project-overlay {
+        opacity: 1;
+    }
+    
+    .latest-project-content {
+        flex: 1;
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    
+    .latest-project-title {
+        font-size: 1.3rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+    
+    .latest-project-title a {
+        color: #333;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+    
+    .latest-project-title a:hover {
+        color: #667eea;
+    }
+    
+    .latest-project-owner {
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .latest-project-description {
+        color: #555;
+        line-height: 1.4;
+        margin-bottom: 1rem;
+        flex-grow: 1;
+    }
+    
+    .latest-progress-container {
+        margin-bottom: 1rem;
+    }
+    
+    .latest-progress {
+        height: 8px;
+        background-color: #e9ecef;
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: 0.5rem;
+    }
+    
+    .latest-progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        border-radius: 4px;
+        transition: width 0.3s ease;
+        width: var(--progress-width, 0%);
+    }
+    
+    .latest-progress-stats {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.85rem;
+    }
+    
+    .latest-percentage {
+        color: #667eea;
+        font-weight: 600;
+    }
+    
+    .latest-amount {
+        color: #666;
+    }
+    
+    .latest-project-actions {
+        display: flex;
+        gap: 0.75rem;
+    }
+    
+    .latest-project-actions .btn {
+        flex: 1;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
+         }
+     
+     /* Featured Projects Styles */
+     .featured-projects-grid {
+         display: grid;
+         grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+         gap: 2rem;
+     }
+     
+         .featured-project-card {
+        background: white;
+        border-radius: 12px;
+        overflow: visible;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: 2px solid #ffc107;
+        height: auto;
+        min-height: 280px;
+        display: flex;
+        position: relative;
+    }
+     
+     .featured-project-card:hover {
+         transform: translateY(-5px);
+         box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+     }
+     
+         .featured-project-image {
+        flex: 0 0 45%;
+        width: 45%;
+        position: relative;
+        overflow: hidden;
+        display: block;
+        padding: 1rem;
+        min-height: 200px;
+    }
+    
+    .featured-project-image img {
+        width: 100% !important;
+        height: 200px !important;
+        max-width: 100% !important;
+        max-height: 200px !important;
+        object-fit: cover !important;
+        transition: transform 0.3s ease;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        display: block;
+        /* Ensure consistent sizing for all project images */
+        aspect-ratio: 16/9;
+    }
+     
+     .featured-project-card:hover .featured-project-image img {
+         transform: scale(1.05);
+     }
+     
+     .featured-project-overlay {
+         position: absolute;
+         top: 0;
+         left: 0;
+         right: 0;
+         bottom: 0;
+         background: rgba(0,0,0,0.7);
+         display: flex;
+         align-items: center;
+         justify-content: center;
+         opacity: 0;
+         transition: opacity 0.3s ease;
+     }
+     
+     .featured-project-card:hover .featured-project-overlay {
+         opacity: 1;
+     }
+     
+     .featured-badge {
+         position: absolute;
+         top: 10px;
+         right: 10px;
+         background: linear-gradient(135deg, #ffc107 0%, #ff8c00 100%);
+         color: white;
+         padding: 0.5rem 1rem;
+         border-radius: 20px;
+         font-size: 0.8rem;
+         font-weight: bold;
+         box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+         z-index: 5;
+     }
+     
+     .featured-badge i {
+         margin-right: 0.25rem;
+     }
+     
+     .featured-project-content {
+         flex: 1;
+         padding: 1.5rem;
+         display: flex;
+         flex-direction: column;
+         justify-content: space-between;
+     }
+     
+     .featured-project-title {
+         font-size: 1.3rem;
+         font-weight: bold;
+         margin-bottom: 0.5rem;
+     }
+     
+     .featured-project-title a {
+         color: #333;
+         text-decoration: none;
+         transition: color 0.3s ease;
+     }
+     
+     .featured-project-title a:hover {
+         color: #ffc107;
+     }
+     
+     .featured-project-owner {
+         color: #666;
+         font-size: 0.9rem;
+         margin-bottom: 0.75rem;
+     }
+     
+     .featured-project-description {
+         color: #555;
+         line-height: 1.4;
+         margin-bottom: 1rem;
+         flex-grow: 1;
+     }
+     
+     .featured-progress-container {
+         margin-bottom: 1rem;
+     }
+     
+     .featured-progress {
+         height: 8px;
+         background-color: #e9ecef;
+         border-radius: 4px;
+         overflow: hidden;
+         margin-bottom: 0.5rem;
+     }
+     
+     .featured-progress-bar {
+         height: 100%;
+         background: linear-gradient(90deg, #ffc107 0%, #ff8c00 100%);
+         border-radius: 4px;
+         transition: width 0.3s ease;
+         width: var(--progress-width, 0%);
+     }
+     
+     .featured-progress-stats {
+         display: flex;
+         justify-content: space-between;
+         font-size: 0.85rem;
+     }
+     
+     .featured-percentage {
+         color: #ffc107;
+         font-weight: 600;
+     }
+     
+     .featured-amount {
+         color: #666;
+     }
+     
+     .featured-project-actions {
+         display: flex;
+         gap: 0.75rem;
+     }
+     
+              .featured-project-actions .btn {
+             flex: 1;
+             padding: 0.5rem 0.75rem;
+             font-size: 0.85rem;
+         }
+         
+
+     
+     /* Latest Projects Responsive */
+     @media (max-width: 768px) {
+         .latest-projects-grid {
+             grid-template-columns: 1fr;
+             gap: 1.5rem;
+         }
+         
+         .latest-project-card {
+             flex-direction: column;
+             height: auto;
+         }
+         
+                 .latest-project-image {
+            flex: 0 0 100%;
+            width: 100%;
+            height: 200px;
+            min-height: 200px;
+        }
+         
+         .latest-project-content {
+             padding: 1.5rem;
+         }
+         
+         .latest-project-actions {
+             flex-direction: column;
+         }
+         
+         /* Featured Projects Responsive */
+         .featured-projects-grid {
+             grid-template-columns: 1fr;
+             gap: 1.5rem;
+         }
+         
+         .featured-project-card {
+             flex-direction: column;
+             height: auto;
+         }
+         
+                 .featured-project-image {
+            flex: 0 0 100%;
+            width: 100%;
+            height: 200px;
+            min-height: 200px;
+        }
+         
+         .featured-project-content {
+             padding: 1.5rem;
+         }
+         
+         .featured-project-actions {
+             flex-direction: column;
+         }
+         
+         .featured-badge {
+             top: 5px;
+             right: 5px;
+             padding: 0.4rem 0.8rem;
+             font-size: 0.75rem;
+         }
+     }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const sliderTrack = document.getElementById('slider-track');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const dots = document.querySelectorAll('.dot');
+    const loadingElement = document.getElementById('slider-loading');
+    
+    if (!sliderTrack) return;
+    
+    // Hide loading state when slider is ready
+    if (loadingElement) {
+        setTimeout(() => {
+            loadingElement.classList.add('hidden');
+        }, 1000);
+    }
+    
+    let currentSlide = 0;
+    const slideCount = dots.length;
+    
+    function updateSlider() {
+        // Move slider to show current slide
+        sliderTrack.style.transform = `translateX(-${currentSlide * 100}%)`;
+        
+        // Update dots
+        dots.forEach((dot, index) => {
+            const isActive = index === currentSlide;
+            dot.classList.toggle('active', isActive);
+            dot.setAttribute('aria-selected', isActive.toString());
+        });
+        
+        // Update navigation buttons
+        if (prevBtn) prevBtn.disabled = currentSlide === 0;
+        if (nextBtn) nextBtn.disabled = currentSlide === slideCount - 1;
+    }
+    
+    function nextSlide() {
+        if (currentSlide < slideCount - 1) {
+            currentSlide++;
+            updateSlider();
+        }
+    }
+    
+    function prevSlide() {
+        if (currentSlide > 0) {
+            currentSlide--;
+            updateSlider();
+        }
+    }
+    
+    function goToSlide(index) {
+        if (index >= 0 && index < slideCount) {
+            currentSlide = index;
+            updateSlider();
+        }
+    }
+    
+    // Event listeners
+    if (prevBtn) prevBtn.addEventListener('click', prevSlide);
+    if (nextBtn) nextBtn.addEventListener('click', nextSlide);
+    
+    dots.forEach((dot, index) => {
+        dot.addEventListener('click', () => goToSlide(index));
+    });
+    
+    // Auto-play slider
+    let autoPlayInterval = setInterval(nextSlide, 6000);
+    
+    // Pause auto-play on hover
+    sliderTrack.addEventListener('mouseenter', () => {
+        clearInterval(autoPlayInterval);
+    });
+    
+    sliderTrack.addEventListener('mouseleave', () => {
+        autoPlayInterval = setInterval(nextSlide, 6000);
+    });
+    
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') {
+            prevSlide();
+        } else if (e.key === 'ArrowRight') {
+            nextSlide();
+        }
+    });
+    
+    // Touch/swipe support for mobile
+    let startX = 0;
+    let endX = 0;
+    
+    sliderTrack.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+    });
+    
+    sliderTrack.addEventListener('touchend', (e) => {
+        endX = e.changedTouches[0].clientX;
+        const diff = startX - endX;
+        
+        if (Math.abs(diff) > 50) { // Minimum swipe distance
+            if (diff > 0) {
+                nextSlide();
+            } else {
+                prevSlide();
+            }
+        }
+    });
+    
+    // Initialize slider
+    updateSlider();
+});
+</script>
+{% endblock %}

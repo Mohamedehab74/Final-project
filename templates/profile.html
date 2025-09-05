@@ -1,0 +1,330 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile - CrowdFund{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white text-center">
+                    <h2><i class="fas fa-user-circle"></i> My Profile</h2>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row">
+                        <!-- Profile Picture Section -->
+                        <div class="col-md-4 text-center mb-4">
+                            <div class="profile-picture-container">
+                                {% if user.profile_picture %}
+                                    <img src="{{ user.profile_picture.url }}" alt="Profile Picture" class="img-fluid rounded-circle mb-3 profile-image">
+                                {% else %}
+                                    <div class="default-avatar mb-3">
+                                        <i class="fas fa-user-circle fa-6x text-muted"></i>
+                                    </div>
+                                {% endif %}
+                                <h4 class="text-primary">{{ user.first_name }} {{ user.last_name }}</h4>
+                                <p class="text-muted">@{{ user.username }}</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Profile Information -->
+                        <div class="col-md-8">
+                            <div class="row">
+                                <div class="col-12 mb-4">
+                                    <h5 class="text-primary mb-3">
+                                        <i class="fas fa-info-circle"></i> Personal Information
+                                    </h5>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <div class="info-card">
+                                                <i class="fas fa-envelope text-primary"></i>
+                                                <strong>Email:</strong>
+                                                <p>{{ user.email }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <div class="info-card">
+                                                <i class="fas fa-phone text-primary"></i>
+                                                <strong>Phone:</strong>
+                                                <p>{{ user.phone_number|default:"Not provided" }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <div class="info-card">
+                                                <i class="fas fa-calendar text-primary"></i>
+                                                <strong>Birthdate:</strong>
+                                                <p>{{ user.birthdate|date:"F j, Y"|default:"Not provided" }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <div class="info-card">
+                                                <i class="fas fa-globe text-primary"></i>
+                                                <strong>Country:</strong>
+                                                <p>{{ user.country|default:"Not provided" }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <div class="info-card">
+                                                <i class="fas fa-venus-mars text-primary"></i>
+                                                <strong>Gender:</strong>
+                                                <p>{{ user.gender|default:"Not specified" }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <div class="info-card">
+                                                <i class="fas fa-clock text-primary"></i>
+                                                <strong>Member Since:</strong>
+                                                <p>{{ user.date_joined|date:"F j, Y" }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    {% if user.bio %}
+                                    <div class="row mt-3">
+                                        <div class="col-12">
+                                            <div class="info-card">
+                                                <i class="fas fa-quote-left text-primary"></i>
+                                                <strong>About Me:</strong>
+                                                <p>{{ user.bio }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Action Buttons -->
+                            <div class="row mt-4">
+                                <div class="col-12 text-center">
+                                    <a href="{% url 'edit_profile' %}" class="btn btn-primary btn-lg me-3">
+                                        <i class="fas fa-edit"></i> Edit Profile
+                                    </a>
+                                    <a href="{% url 'delete_account' %}" class="btn btn-danger btn-lg">
+                                        <i class="fas fa-trash"></i> Delete Account
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Projects Section -->
+                    <div class="row mt-5">
+                        <div class="col-12">
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-project-diagram"></i> My Projects
+                            </h5>
+                            <div class="projects-container">
+                                {% if projects %}
+                                    <div class="row">
+                                        {% for project in projects %}
+                                            <div class="col-md-6 col-lg-4 mb-3">
+                                                <div class="project-card">
+                                                    <div class="project-header">
+                                                        <h6 class="project-title">{{ project.title }}</h6>
+                                                        <span class="project-date">{{ project.start_time|date:"M j, Y" }}</span>
+                                                    </div>
+                                                    <div class="project-content">
+                                                        <p class="project-description">{{ project.description|truncatewords:20 }}</p>
+                                                        <div class="project-status">
+                                                            <span class="badge bg-{% if project.status == 'active' %}success{% elif project.status == 'completed' %}primary{% else %}warning{% endif %}">
+                                                                {{ project.status|title }}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <div class="text-center py-4">
+                                        <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+                                        <h5 class="text-muted">No projects yet</h5>
+                                        <p class="text-muted">Start your crowdfunding journey by creating your first project!</p>
+                                        <a href="{% url 'create_project' %}" class="btn btn-success btn-lg">
+                                            <i class="fas fa-plus"></i> Create Your First Project
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .profile-picture-container {
+        position: relative;
+    }
+    
+    .profile-image {
+        width: 200px;
+        height: 200px;
+        object-fit: cover;
+        border: 4px solid #007bff;
+        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    }
+    
+    .default-avatar {
+        width: 200px;
+        height: 200px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #f8f9fa;
+        border-radius: 50%;
+        border: 4px solid #dee2e6;
+    }
+    
+    .info-card {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 15px;
+        border-left: 4px solid #007bff;
+        transition: all 0.3s ease;
+    }
+    
+    .info-card:hover {
+        background-color: #e9ecef;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .info-card i {
+        margin-right: 8px;
+    }
+    
+    .info-card strong {
+        color: #495057;
+        font-weight: 600;
+    }
+    
+    .info-card p {
+        margin: 5px 0 0 0;
+        color: #6c757d;
+    }
+    
+    .project-card {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 15px;
+        border-left: 4px solid #28a745;
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+    
+    .project-card:hover {
+        background-color: #e9ecef;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .project-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    
+    .project-title {
+        font-weight: 600;
+        color: #495057;
+        margin: 0;
+    }
+    
+    .project-date {
+        font-size: 0.8em;
+        color: #6c757d;
+    }
+    
+    .project-description {
+        color: #6c757d;
+        font-size: 0.9em;
+        margin-bottom: 10px;
+    }
+    
+    .project-status {
+        text-align: right;
+    }
+    
+    .card {
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+    }
+    
+    .card-header {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        border: none;
+        padding: 20px;
+    }
+    
+    .btn {
+        border-radius: 8px;
+        padding: 12px 30px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        border: none;
+    }
+    
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    }
+    
+    .btn-danger {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        border: none;
+    }
+    
+    .btn-danger:hover {
+        background: linear-gradient(135deg, #c82333 0%, #a71e2a 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+    }
+    
+    .btn-success {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border: none;
+    }
+    
+    .btn-success:hover {
+        background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    }
+    
+    .text-primary {
+        color: #007bff !important;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .profile-picture-container {
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        .btn + .btn {
+            margin-left: 0 !important;
+        }
+        
+        .profile-image, .default-avatar {
+            width: 150px;
+            height: 150px;
+        }
+    }
+</style>
+{% endblock %}

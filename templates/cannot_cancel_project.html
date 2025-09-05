@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cannot Cancel Project - {{ project.title }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2em;
+        }
+        .info-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        .project-info {
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #eee;
+        }
+        .project-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .project-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #d4edda;
+            border-radius: 8px;
+            border: 1px solid #c3e6cb;
+        }
+        .stat {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #155724;
+        }
+        .stat-label {
+            color: #155724;
+            font-size: 0.9em;
+        }
+        .content {
+            padding: 30px;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+        .success h3 {
+            margin-top: 0;
+            color: #155724;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+        .info h3 {
+            margin-top: 0;
+            color: #0c5460;
+        }
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            transition: background-color 0.3s;
+            text-align: center;
+            width: 100%;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="info-icon">🎉</div>
+            <h1>Project Cannot Be Cancelled</h1>
+        </div>
+        
+        <div class="project-info">
+            <div class="project-title">{{ project.title }}</div>
+            <div style="color: #666; font-size: 0.9em;">by {{ project.owner.first_name }} {{ project.owner.last_name }}</div>
+            
+            <div class="project-stats">
+                <div class="stat">
+                    <div class="stat-value">{{ donation_percentage|floatformat:1 }}%</div>
+                    <div class="stat-label">Raised</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">25%</div>
+                    <div class="stat-label">Threshold</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">{{ project.donation_set.count }}</div>
+                    <div class="stat-label">Donors</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="success">
+                <h3>🎉 Congratulations!</h3>
+                <p>Your project has reached <strong>{{ donation_percentage|floatformat:1 }}%</strong> of the target amount, which exceeds the 25% threshold. This means your project has sufficient community support and <strong>cannot be cancelled</strong>.</p>
+            </div>
+            
+            <div class="info">
+                <h3>Why can't you cancel this project?</h3>
+                <p>Once a project reaches 25% or more of its funding goal, it demonstrates strong community support and commitment. At this point, the project must continue to completion to honor the trust and financial commitment of your donors.</p>
+                <p>This policy ensures that donors' contributions are protected and that projects with genuine community support are given the opportunity to succeed.</p>
+            </div>
+            
+            <a href="{% url 'project_detail' project.id %}" class="btn">Return to Project</a>
+        </div>
+    </div>
+</body>
+</html>

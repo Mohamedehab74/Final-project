@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}My Projects - CrowdFund{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h1>My Projects</h1>
+        <p>Manage and track your crowdfunding projects</p>
+    </div>
+    <div class="card-content">
+        <!-- Navigation -->
+        <div class="text-center mb-4">
+            <a href="{% url 'my_projects' %}" class="btn active">My Projects</a>
+            <a href="{% url 'all_projects' %}" class="btn">All Projects</a>
+            <a href="{% url 'create_project' %}" class="btn btn-success">Create New Project</a>
+        </div>
+
+        {% if projects %}
+        <div class="grid grid-3">
+            {% for project in projects %}
+            <div class="project-card" style="border-left: 4px solid #28a745;">
+                {% with main_image=project.get_main_image %}
+                    {% if main_image %}
+                    <img src="{{ main_image.url }}" alt="{{ project.title }}" class="project-image">
+                    {% else %}
+                    <div class="project-image" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.2em;">
+                        {{ project.title|slice:":20" }}...
+                    </div>
+                    {% endif %}
+                {% endwith %}
+                
+                <div class="project-content">
+                    <a href="{% url 'project_detail' project.id %}" class="project-title">{{ project.title }}</a>
+                    <div class="project-owner">Created by you</div>
+                    
+                    <div class="project-description">
+                        {{ project.details|truncatewords:20 }}
+                    </div>
+                    
+                    <div class="mb-2">
+                        <span class="badge badge-success">{{ project.category.name|default:"General" }}</span>
+                        <span style="color: #666; font-size: 0.9em; float: right;">{{ project.start_time|date:"M j, Y" }}</span>
+                    </div>
+                    
+                    <div class="mb-2">
+                        {% with project.get_donation_percentage as donation_percentage %}
+                        {% if donation_percentage > 0 %}
+                            <div class="progress">
+                                <div class="progress-bar" style="width: {{ donation_percentage }}%"></div>
+                            </div>
+                            <div style="font-size: 0.9em; color: #666;">{{ donation_percentage|floatformat:1 }}% of ${{ project.total_target }} goal</div>
+                        {% else %}
+                            <div class="progress">
+                                <div class="progress-bar" style="width: 0%"></div>
+                            </div>
+                            <div style="font-size: 0.9em; color: #666;">Just started - ${{ project.total_target }} goal</div>
+                        {% endif %}
+                        {% endwith %}
+                    </div>
+                    
+                    <a href="{% url 'project_detail' project.id %}" class="btn" style="width: 100%;">View Project</a>
+                    <a href="#" class="btn btn-warning" style="width: 100%; margin-top: 10px;">Edit Project</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center p-4">
+            <h3 class="mb-2">You haven't created any projects yet</h3>
+            <p class="mb-3">Start your crowdfunding journey by creating your first project!</p>
+            <a href="{% url 'create_project' %}" class="btn btn-success">Create Your First Project</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

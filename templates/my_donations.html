@@ -1,0 +1,15 @@
+<h2>My Donations</h2>
+
+{% if donations %}
+  <ul>
+    {% for donation in donations %}
+      <li>
+        <strong>Project:</strong> {{ donation.project.title }}<br>
+        <strong>Amount:</strong> {{ donation.amount }} EGP<br>
+        <em>Date:</em> {{ donation.timestamp|date:"Y-m-d H:i" }}
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>You haven't donated to any projects yet.</p>
+{%endif%}

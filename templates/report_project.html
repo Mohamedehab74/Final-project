@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Project - {{ project.title }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2em;
+        }
+        .project-info {
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #eee;
+        }
+        .project-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .project-owner {
+            color: #666;
+            font-size: 0.9em;
+        }
+        .report-form {
+            padding: 30px;
+        }
+        .form-group {
+            margin-bottom: 25px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+        .form-group select:focus {
+            outline: none;
+            border-color: #dc3545;
+        }
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            min-height: 120px;
+            resize: vertical;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #dc3545;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .warning-icon {
+            font-size: 24px;
+            margin-right: 10px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background-color: #dc3545;
+            color: white;
+            text-decoration: none;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+        .btn:hover {
+            background-color: #c82333;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            margin-top: 15px;
+        }
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        .reason-info {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .reason-info h4 {
+            margin-top: 0;
+            color: #28a745;
+        }
+        .reason-list {
+            list-style: none;
+            padding: 0;
+        }
+        .reason-list li {
+            padding: 5px 0;
+            border-bottom: 1px solid #ddd;
+        }
+        .reason-list li:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Report Project</h1>
+        </div>
+        
+        <div class="project-info">
+            <div class="project-title">{{ project.title }}</div>
+            <div class="project-owner">by {{ project.owner.first_name }} {{ project.owner.last_name }}</div>
+        </div>
+        
+        <div class="report-form">
+            <div class="warning">
+                <span class="warning-icon">⚠️</span>
+                <strong>Important:</strong> Please only report projects that violate our community guidelines. False reports may result in account suspension.
+            </div>
+            
+            <div class="reason-info">
+                <h4>What can be reported:</h4>
+                <ul class="reason-list">
+                    <li><strong>Inappropriate Content:</strong> Offensive, vulgar, or unsuitable material</li>
+                    <li><strong>Spam or Misleading:</strong> False information or deceptive content</li>
+                    <li><strong>Violence or Harmful:</strong> Content promoting harm or violence</li>
+                    <li><strong>Copyright Violation:</strong> Unauthorized use of copyrighted material</li>
+                    <li><strong>Other:</strong> Any other violation of community guidelines</li>
+                </ul>
+            </div>
+            
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="reason">Reason for Report:</label>
+                    <select id="reason" name="reason" required>
+                        <option value="">Select a reason...</option>
+                        <option value="inappropriate">Inappropriate Content</option>
+                        <option value="spam">Spam or Misleading</option>
+                        <option value="violence">Violence or Harmful</option>
+                        <option value="copyright">Copyright Violation</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">Additional Details:</label>
+                    <textarea id="description" name="description" 
+                              placeholder="Please provide specific details about why you're reporting this project. This helps us understand and address the issue properly." 
+                              required></textarea>
+                </div>
+                
+                <button type="submit" class="btn">Submit Report</button>
+                <a href="{% url 'project_detail' project.id %}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

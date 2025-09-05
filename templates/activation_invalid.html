@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}Invalid Activation Link{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-danger text-white text-center">
+                    <h3><i class="fas fa-times-circle"></i> Invalid Activation Link</h3>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-exclamation-circle fa-3x text-danger"></i>
+                    </div>
+                    <h4>Invalid Link</h4>
+                    <p class="lead">The activation link you used is invalid or has already been used.</p>
+                    
+                    <div class="alert alert-info">
+                        <strong>Possible reasons:</strong>
+                        <ul class="list-unstyled mt-2">
+                            <li>• The link has already been used to activate an account</li>
+                            <li>• The link is malformed or incomplete</li>
+                            <li>• The account has already been activated</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <a href="{% url 'login' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-sign-in-alt"></i> Go to Login
+                        </a>
+                        <a href="{% url 'register' %}" class="btn btn-secondary btn-lg ml-2">
+                            <i class="fas fa-user-plus"></i> Register New Account
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
